@@ -1,0 +1,60 @@
+{
+  "study": {
+    "model_path": "Qwen/Qwen3-4B-Instruct-2507",
+    "served_model_name": "Qwen/Qwen3-4B-Instruct-2507-FC",
+    "host": "127.0.0.1",
+    "port": 30000,
+    "startup_timeout_seconds": 900,
+    "tool_call_parser": "qwen",
+    "extra_server_args": []
+  },
+  "benchmark": {
+    "model_name": "Qwen/Qwen3-4B-Instruct-2507-FC",
+    "run_ids_file": "configs/bfcl_run_ids.json",
+    "concurrency": 8,
+    "temperature": 0.001,
+    "evaluate": true
+  },
+  "experiments": {
+    "single_gpu_small": {
+      "description": "Single GPU with a deliberately small static memory pool",
+      "cuda_visible_devices": "0",
+      "tensor_parallel_size": 1,
+      "mem_fraction_static": 0.50,
+      "hicache": false
+    },
+    "single_gpu_medium": {
+      "description": "Single-GPU baseline",
+      "cuda_visible_devices": "0",
+      "tensor_parallel_size": 1,
+      "mem_fraction_static": 0.70,
+      "hicache": false
+    },
+    "single_gpu_large": {
+      "description": "Single GPU with a larger KV cache pool",
+      "cuda_visible_devices": "0",
+      "tensor_parallel_size": 1,
+      "mem_fraction_static": 0.85,
+      "hicache": false
+    },
+    "tp2_medium": {
+      "description": "Tensor parallel deployment across two GPUs",
+      "cuda_visible_devices": "0,1",
+      "tensor_parallel_size": 2,
+      "mem_fraction_static": 0.70,
+      "hicache": false
+    },
+    "single_gpu_medium_hicache": {
+      "description": "Single-GPU baseline plus a 16 GiB host KV cache",
+      "cuda_visible_devices": "0",
+      "tensor_parallel_size": 1,
+      "mem_fraction_static": 0.70,
+      "hicache": true,
+      "hicache_size_gb": 16,
+      "hicache_io_backend": "kernel",
+      "hicache_write_policy": "write_through",
+      "hicache_mem_layout": "page_first"
+    }
+  }
+}
+

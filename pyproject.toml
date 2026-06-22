@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-serving-performance-study"
+version = "0.1.0"
+description = "Reproducible SGLang and BFCL experiments for multi-turn agent serving"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Eric Gao" }]
+dependencies = []
+
+[project.scripts]
+agent-serving-study = "agent_serving_study.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

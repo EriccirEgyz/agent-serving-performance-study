@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.env
+
+# Models, benchmark outputs, and runtime artifacts are intentionally local.
+models/
+artifacts/
+result/
+score/
+configs/bfcl_run_ids.json
+
