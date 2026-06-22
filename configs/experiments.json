@@ -51,10 +51,7 @@
       "mem_fraction_static": 0.70,
       "hicache": true,
       "hicache_size_gb": 16,
-      "hicache_io_backend": "kernel",
-      "hicache_write_policy": "write_through",
-      "hicache_mem_layout": "page_first"
+      "hicache_write_policy": "write_through"
     }
   }
 }
-

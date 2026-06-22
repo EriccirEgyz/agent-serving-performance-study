@@ -23,31 +23,25 @@ artifacts/               每次实验的原始结果（gitignored）
 
 ## 服务器准备
 
-建议在 Linux + CUDA 12.4 + A100 环境执行。安装前先确认课程镜像是否已经包含 SGLang；若已包含，应保留镜像中经过验证的版本，避免盲目升级 CUDA/PyTorch。
+建议在 Linux + CUDA 12.4 + A100 环境执行。项目使用 Python 3.10，并在 pyproject.toml 的 server-cu124 extra 中固定服务器依赖。
 
 ```bash
 git clone https://github.com/EriccirEgyz/agent-serving-performance-study.git
 cd agent-serving-performance-study
 
-# 全新环境可使用；已有课程环境建议手动安装缺失包。
-bash scripts/server_setup.sh
-source .venv/bin/activate
+# 安装 uv，然后自动创建 .venv 并安装全部服务器依赖。
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME/.local/bin/env"
+uv sync --locked --extra server-cu124
 ```
 
-若使用现有环境，最低限度为：
-
-```bash
-python -m pip install -e .
-python -m pip install bfcl-eval
-# 仅在环境没有 SGLang 时安装，并根据服务器 CUDA 版本选择兼容版本。
-python -m pip install "sglang[all]"
-```
+不需要手动激活 .venv，后续统一使用 uv run。仓库已提交 uv.lock，--locked 会确保服务器严格使用同一套依赖。
 
 记录版本，报告中需要使用：
 
 ```bash
-python --version
-python -m pip show sglang bfcl-eval torch
+uv run python --version
+uv pip show sglang bfcl-eval torch
 nvidia-smi
 ```
 
@@ -56,20 +50,20 @@ nvidia-smi
 默认从四个 BFCL v4 multi-turn 类别各抽取 12 条，共 48 条。选择过程固定随机种子，生成的 ID 文件默认不提交，以免不同 BFCL 数据版本混用。
 
 ```bash
-python scripts/select_bfcl_subset.py --per-category 12 --seed 2026
+uv run python scripts/select_bfcl_subset.py --per-category 12 --seed 2026
 ```
 
 如只想冒烟测试：
 
 ```bash
-python scripts/select_bfcl_subset.py --per-category 1 --seed 2026
+uv run python scripts/select_bfcl_subset.py --per-category 1 --seed 2026
 ```
 
 ## 查看实验矩阵
 
 ```bash
-agent-serving-study list
-agent-serving-study command single_gpu_medium
+uv run agent-serving-study list
+uv run agent-serving-study command single_gpu_medium
 ```
 
 默认矩阵如下：
@@ -89,16 +83,16 @@ agent-serving-study command single_gpu_medium
 先做一组小规模基线：
 
 ```bash
-agent-serving-study run single_gpu_medium
+uv run agent-serving-study run single_gpu_medium
 ```
 
 确认 BFCL 正确率、日志和显存都合理后，再依次运行：
 
 ```bash
-agent-serving-study run single_gpu_small
-agent-serving-study run single_gpu_large
-agent-serving-study run tp2_medium
-agent-serving-study run single_gpu_medium_hicache
+uv run agent-serving-study run single_gpu_small
+uv run agent-serving-study run single_gpu_large
+uv run agent-serving-study run tp2_medium
+uv run agent-serving-study run single_gpu_medium_hicache
 ```
 
 每次运行都会新建：
@@ -120,7 +114,7 @@ artifacts/<timestamp>-<experiment>/
 汇总全部实验：
 
 ```bash
-agent-serving-study summarize-all --output artifacts/summary.csv
+uv run agent-serving-study summarize-all --output artifacts/summary.csv
 ```
 
 正式数据建议每个配置独立重复三次。每次都由编排器重新启动服务，因此 Prefix Cache 从空状态开始；任务集合、顺序、并发数、模型和生成参数保持不变。
@@ -147,9 +141,9 @@ agent-serving-study summarize-all --output artifacts/summary.csv
 不需要 GPU：
 
 ```bash
-python -m pip install -e .
-python -m unittest discover -s tests -v
-agent-serving-study list
+uv sync
+uv run python -m unittest discover -s tests -v
+uv run agent-serving-study list
 ```
 
 ## 方法学约束

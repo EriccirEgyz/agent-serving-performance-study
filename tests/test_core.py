@@ -23,6 +23,8 @@ class CoreTests(unittest.TestCase):
         self.assertIn("--enable-hierarchical-cache", command)
         self.assertIn("--enable-cache-report", command)
         self.assertIn("--hicache-size", command)
+        self.assertNotIn("--hicache-io-backend", command)
+        self.assertNotIn("--hicache-mem-layout", command)
 
     def test_prometheus_deltas(self):
         before = 'sglang:prompt_tokens_total 10\nsglang:cached_tokens_total{cache_source="device"} 2\n'

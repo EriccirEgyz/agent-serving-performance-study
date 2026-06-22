@@ -12,6 +12,13 @@ license = { text = "MIT" }
 authors = [{ name = "Eric Gao" }]
 dependencies = []
 
+[project.optional-dependencies]
+server-cu124 = [
+    "bfcl-eval==2026.3.23",
+    "cuda-python==12.4.0",
+    "sglang[srt]==0.4.6.post5",
+]
+
 [project.scripts]
 agent-serving-study = "agent_serving_study.cli:main"
 
@@ -20,4 +27,3 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

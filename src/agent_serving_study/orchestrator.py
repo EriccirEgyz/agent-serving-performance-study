@@ -49,13 +49,16 @@ def build_server_command(config: LoadedConfig, experiment_name: str) -> list[str
             "--enable-hierarchical-cache",
             "--hicache-size",
             str(experiment.get("hicache_size_gb", 16)),
-            "--hicache-io-backend",
-            str(experiment.get("hicache_io_backend", "kernel")),
             "--hicache-write-policy",
             str(experiment.get("hicache_write_policy", "write_through")),
-            "--hicache-mem-layout",
-            str(experiment.get("hicache_mem_layout", "page_first")),
         ]
+        optional_hicache_args = {
+            "hicache_io_backend": "--hicache-io-backend",
+            "hicache_mem_layout": "--hicache-mem-layout",
+        }
+        for config_key, flag in optional_hicache_args.items():
+            if config_key in experiment:
+                command += [flag, str(experiment[config_key])]
     command.extend(str(arg) for arg in study.get("extra_server_args", []))
     command.extend(str(arg) for arg in experiment.get("extra_server_args", []))
     return command

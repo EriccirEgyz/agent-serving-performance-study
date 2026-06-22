@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install bfcl-eval "sglang[all]"
+if ! command -v uv >/dev/null 2>&1; then
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
+fi
 
-echo "Environment created. Verify CUDA/SGLang compatibility, then run:"
-echo "  source .venv/bin/activate"
-echo "  python scripts/select_bfcl_subset.py"
-echo "  agent-serving-study list"
+uv sync --locked --extra server-cu124
 
+echo "Environment created. Run commands through uv:"
+echo "  uv run python scripts/select_bfcl_subset.py --per-category 1"
+echo "  uv run agent-serving-study list"
