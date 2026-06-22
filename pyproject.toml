@@ -15,6 +15,7 @@ dependencies = []
 [project.optional-dependencies]
 server-cu124 = [
     "bfcl-eval==2026.3.23",
+    "compressed-tensors==0.9.4",
     "cuda-python==12.4.0",
     "sglang[srt]==0.4.6.post5",
 ]
