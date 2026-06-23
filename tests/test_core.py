@@ -23,6 +23,7 @@ class CoreTests(unittest.TestCase):
         self.assertIn("--enable-hierarchical-cache", command)
         self.assertIn("--enable-cache-report", command)
         self.assertIn("--hicache-size", command)
+        self.assertNotIn("--tool-call-parser", command)
         self.assertNotIn("--hicache-io-backend", command)
         self.assertNotIn("--hicache-mem-layout", command)
 

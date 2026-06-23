@@ -71,10 +71,20 @@ def _request_text(url: str, api_key: str | None = None, timeout: float = 10) -> 
         return response.read().decode("utf-8", errors="replace")
 
 
-def wait_for_server(base_url: str, timeout_seconds: float, api_key: str | None) -> None:
+def wait_for_server(
+    base_url: str,
+    timeout_seconds: float,
+    api_key: str | None,
+    process: subprocess.Popen[Any] | None = None,
+) -> None:
     deadline = time.monotonic() + timeout_seconds
     last_error: Exception | None = None
     while time.monotonic() < deadline:
+        if process is not None and process.poll() is not None:
+            raise RuntimeError(
+                f"SGLang exited during startup with code {process.returncode}. "
+                "Inspect server.log in the artifact directory."
+            )
         try:
             _request_text(f"{base_url}/v1/models", api_key=api_key, timeout=5)
             return
@@ -209,6 +219,7 @@ def run_experiment(
             base_url,
             float(config.study.get("startup_timeout_seconds", 900)),
             api_key,
+            process=server,
         )
         monitor.start()
         (artifact / "metrics_before.prom").write_text(

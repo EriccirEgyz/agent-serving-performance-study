@@ -5,7 +5,6 @@
     "host": "127.0.0.1",
     "port": 30000,
     "startup_timeout_seconds": 900,
-    "tool_call_parser": "qwen",
     "extra_server_args": []
   },
   "benchmark": {
