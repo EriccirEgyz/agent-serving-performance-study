@@ -43,13 +43,21 @@
       "mem_fraction_static": 0.70,
       "hicache": false
     },
+    "two_replica_medium": {
+      "description": "Two independent single-GPU replicas behind a round-robin proxy",
+      "cuda_visible_devices": "0,1",
+      "tensor_parallel_size": 1,
+      "replica_count": 2,
+      "mem_fraction_static": 0.70,
+      "hicache": false
+    },
     "single_gpu_medium_hicache": {
-      "description": "Single-GPU baseline plus a 16 GiB host KV cache",
+      "description": "Single-GPU baseline plus a 48 GiB host KV cache",
       "cuda_visible_devices": "0",
       "tensor_parallel_size": 1,
       "mem_fraction_static": 0.70,
       "hicache": true,
-      "hicache_size_gb": 16,
+      "hicache_size_gb": 48,
       "hicache_write_policy": "write_through"
     }
   }

@@ -4,7 +4,7 @@
 
 ## 已实现内容
 
-- 五组实验配置：单 GPU 三档 KV Cache、TP=2、单 GPU + HiCache。
+- 六组实验配置：单 GPU 三档 KV Cache、TP=2、双单卡副本、单 GPU + HiCache。
 - 使用官方 BFCL multi-turn 数据，可固定随机子集和并发数。
 - 通过运行时包装 BFCL 生成器，记录每个完整 Agent 任务的端到端耗时，不修改 BFCL 源码。
 - 自动启动/停止 SGLang，保存启动命令、版本环境、服务日志和返回码。
@@ -74,6 +74,7 @@ uv run agent-serving-study command single_gpu_medium
 | `single_gpu_medium` | 1 | 1 | 0.70 | No |
 | `single_gpu_large` | 1 | 1 | 0.85 | No |
 | `tp2_medium` | 2 | 2 | 0.70 | No |
+| `two_replica_medium` | 2（两个单卡副本） | 1/副本 | 0.70/副本 | No |
 | `single_gpu_medium_hicache` | 1 | 1 | 0.70 | 16 GiB host cache |
 
 `mem-fraction-static` 同时包含模型权重和 KV Cache 池，报告中应从每次 `server.log` 与 metrics 记录真实 `max_total_num_tokens`，不能把 0.50/0.70/0.85 直接称为 KV Cache 容量。
@@ -92,15 +93,21 @@ uv run agent-serving-study run single_gpu_medium
 uv run agent-serving-study run single_gpu_small
 uv run agent-serving-study run single_gpu_large
 uv run agent-serving-study run tp2_medium
+uv run agent-serving-study run two_replica_medium
 uv run agent-serving-study run single_gpu_medium_hicache
 ```
+
+`two_replica_medium` 会在 GPU 0 和 GPU 1 上各启动一个 TP=1 的 SGLang 实例，默认后端端口为 30001 和 30002，并在原服务端口 30000 启动按请求轮询的反向代理。BFCL 无需修改 endpoint；代理的 `/metrics` 会合并两个副本的 Prometheus 输出，因此 token throughput 按双副本总量统计。两个副本拥有彼此独立的 Prefix/KV Cache，按请求轮询可能使同一 Agent 的不同轮次落到不同副本，这也是该负载均衡策略需要计入分析的 cache-locality 代价。多副本实验不支持 `--keep-server`。
 
 每次运行都会新建：
 
 ```text
 artifacts/<timestamp>-<experiment>/
   run_metadata.json
-  server.log
+  server.log                         # 单实例实验
+  server_replica_0.log               # 多副本实验
+  server_replica_1.log
+  load_balancer.log
   bfcl_generate.log
   bfcl_evaluate.log
   metrics_before.prom

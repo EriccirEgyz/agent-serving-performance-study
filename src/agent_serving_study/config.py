@@ -60,6 +60,33 @@ def load_config(path: str | Path) -> LoadedConfig:
         fraction = float(experiment["mem_fraction_static"])
         if not 0 < fraction < 1:
             raise ValueError(f"Experiment {name!r} has invalid mem_fraction_static={fraction}")
+        replica_count = int(experiment.get("replica_count", 1))
+        if replica_count < 1:
+            raise ValueError(f"Experiment {name!r} has invalid replica_count={replica_count}")
+        if replica_count > 1:
+            if int(experiment["tensor_parallel_size"]) != 1:
+                raise ValueError(
+                    f"Experiment {name!r} must use tensor_parallel_size=1 with replicas"
+                )
+            gpu_ids = [
+                value.strip()
+                for value in str(experiment["cuda_visible_devices"]).split(",")
+                if value.strip()
+            ]
+            if len(gpu_ids) != replica_count or len(set(gpu_ids)) != replica_count:
+                raise ValueError(
+                    f"Experiment {name!r} requires {replica_count} distinct GPU IDs, got {gpu_ids}"
+                )
+            if "replica_ports" in experiment:
+                ports = [int(value) for value in experiment["replica_ports"]]
+                if len(ports) != replica_count or len(set(ports)) != replica_count:
+                    raise ValueError(
+                        f"Experiment {name!r} requires {replica_count} distinct replica ports"
+                    )
+                if int(study["port"]) in ports:
+                    raise ValueError(
+                        f"Experiment {name!r} replica_ports must not include the frontend port"
+                    )
 
     return LoadedConfig(config_path, root, study, benchmark, experiments)
 
@@ -67,4 +94,3 @@ def load_config(path: str | Path) -> LoadedConfig:
 def resolve_from_root(config: LoadedConfig, value: str | Path) -> Path:
     path = Path(value).expanduser()
     return path if path.is_absolute() else (config.root / path).resolve()
-

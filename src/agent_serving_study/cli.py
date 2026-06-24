@@ -6,7 +6,7 @@ import shlex
 from pathlib import Path
 
 from .config import load_config
-from .orchestrator import build_server_command, run_experiment
+from .orchestrator import build_server_command, build_server_specs, run_experiment
 from .summary import summarize_all, summarize_artifact
 
 
@@ -41,7 +41,19 @@ def main() -> None:
         for name, experiment in config.experiments.items():
             print(f"{name:30} {experiment.get('description', '')}")
     elif args.command == "command":
-        print(shlex.join(build_server_command(config, args.experiment)))
+        specs = build_server_specs(config, args.experiment)
+        if len(specs) == 1:
+            print(shlex.join(build_server_command(config, args.experiment)))
+        else:
+            for spec in specs:
+                print(
+                    f"CUDA_VISIBLE_DEVICES={spec.cuda_visible_devices} "
+                    f"{shlex.join(spec.command)}"
+                )
+            print(
+                f"round-robin frontend: {config.study['host']}:{config.study['port']} "
+                "(started automatically by the run command)"
+            )
     elif args.command == "run":
         summary = run_experiment(config, args.experiment, args.artifact_dir, args.keep_server)
         print(json.dumps(summary, ensure_ascii=False, indent=2))
@@ -54,4 +66,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
